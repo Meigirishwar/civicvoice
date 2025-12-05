@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Submit Complaint | Civic Voice</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4 text-primary fw-bold">Submit a Complaint</h2>
+
+    <!-- ✅ enctype added to support file upload -->
+    <form action="/complaints/submit" method="post" enctype="multipart/form-data" class="p-4 bg-white shadow rounded">
+
+        <!-- Complaint Title -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Title</label>
+            <input type="text" class="form-control" name="title" placeholder="Enter complaint title" required>
+        </div>
+
+        <!-- Complaint Description -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Description</label>
+            <textarea class="form-control" name="description" rows="4" placeholder="Describe your complaint in detail" required></textarea>
+        </div>
+
+        <!-- Complaint Category -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Category</label>
+            <select name="category" class="form-select" required>
+                <option value="" selected disabled>Choose category</option>
+                <option value="Garbage">Garbage Issue</option>
+                <option value="Water">Water Leakage</option>
+                <option value="Electricity">Electricity / Streetlight</option>
+                <option value="Road">Road / Pothole</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <!-- Optional Photo/Video Upload -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Attach Photo/Video (Optional)</label>
+            <input type="file" class="form-control" name="mediaFile" accept="image/*,video/*">
+            <div class="form-text">You can upload a photo or short video to support your complaint.</div>
+        </div>
+
+        <!-- Hidden Status Field -->
+        <input type="hidden" name="status" value="Pending">
+
+        <!-- Submit Button -->
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary px-4">Submit Complaint</button>
+        </div>
+    </form>
+
+    <!-- Back to Home -->
+    <div class="text-center mt-4">
+        <a href="/dashboard" class="btn btn-secondary">Back to Dashboard</a>
+
+    </div>
+
+    <!-- ✅ Success/Error Messages -->
+    <div th:if="${message}" class="alert alert-success mt-3 text-center" th:text="${message}"></div>
+    <div th:if="${error}" class="alert alert-danger mt-3 text-center" th:text="${error}"></div>
+</div>
+
+</body>
+</html>

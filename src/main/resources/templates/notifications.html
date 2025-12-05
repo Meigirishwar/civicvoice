@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Civic Voice – Dashboard</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to bottom right, #f0f9ff, #ffffff, #dbeafe);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fadeIn { animation: fadeIn 0.25s ease-in-out; }
+
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+        /* Blue dot for unread notifications */
+        .unread-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #2563eb;
+            border-radius: 50%;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+
+<!-- 🔹 Navbar -->
+<nav class="bg-white shadow-md p-4 flex justify-between items-center relative">
+    <h1 class="text-2xl font-bold text-blue-700">🌿 Civic Voice</h1>
+
+    <!-- Right Side -->
+    <div class="flex items-center space-x-5">
+        <!-- Notification Bell -->
+        <div id="notif-btn" class="relative cursor-pointer">
+            <i class="bi bi-bell-fill text-2xl text-blue-700 hover:text-blue-900"></i>
+            <span id="notif-count"
+                  class="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full"
+                  th:if="${unreadCount != null and unreadCount > 0}"
+                  th:text="${unreadCount}"></span>
+        </div>
+
+        <!-- Profile Dropdown -->
+        <div class="relative group">
+            <img th:src="${user != null && user.profilePicture != null ? user.profilePicture : '/avatars/default.png'}"
+                 class="w-10 h-10 rounded-full object-cover border-2 border-blue-500 cursor-pointer">
+            <div class="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition">
+                <a href="/profile" class="block px-4 py-2 text-gray-700 hover:bg-blue-100">View Profile</a>
+                <hr>
+                <a href="/logout" class="block px-4 py-2 text-red-600 font-semibold hover:bg-red-100">Logout</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- 💡 Main Content -->
+<section class="flex flex-col items-center justify-center text-center py-20">
+    <h2 class="text-4xl font-bold text-blue-700 mb-4">Welcome back, <span th:text="${username}">User</span>!</h2>
+    <p class="text-gray-600 max-w-xl text-lg">
+        Manage your complaints, check their status, or raise a new issue to improve your community 💪
+    </p>
+
+    <div class="mt-10 space-x-4">
+        <a href="/complaints/submit"
+           class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition">
+            <i class="bi bi-megaphone"></i> File a Complaint
+        </a>
+        <a href="/complaints/list"
+           class="px-6 py-3 border border-blue-600 text-blue-700 rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition">
+            <i class="bi bi-list-task"></i> View My Complaints
+        </a>
+    </div>
+</section>
+
+<!-- 🌿 Footer -->
+<footer class="text-center text-sm text-gray-500 py-6 border-t border-gray-200">
+    © 2025 Civic Voice — Empowering communities with technology 💙
+</footer>
+
+<!-- 🔔 Notification Popup -->
+<div id="notif-overlay"
+     class="hidden fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50">
+
+    <div class="bg-white rounded-2xl shadow-2xl w-96 max-h-[80vh] overflow-y-auto relative p-6 animate-fadeIn scrollbar-hide">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-4 border-b pb-3">
+            <h2 class="text-2xl font-bold text-blue-700 flex items-center">
+                <i class="bi bi-bell-fill mr-2 text-blue-600"></i> Notifications
+            </h2>
+
+            <div class="flex items-center space-x-3">
+                <!-- ✅ Show only when 2 or more notifications -->
+                <form th:if="${notifications != null and notifications.size() >= 2}"
+                      th:action="@{/notifications/markAllRead}" method="post">
+                    <button type="submit"
+                            class="text-xs bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-700 transition shadow-sm">
+                        Mark All Read
+                    </button>
+                </form>
+
+                <!-- ❌ Close Button -->
+                <button id="close-notif"
+                        class="text-gray-600 hover:text-gray-900 text-lg transition transform hover:rotate-90">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ✅ Notification List -->
+        <div th:if="${notifications != null and notifications.size() > 0}" class="divide-y divide-gray-200">
+            <div th:each="note : ${notifications}"
+                 class="flex justify-between items-center py-3 px-1 hover:bg-blue-50 transition rounded">
+
+                <!-- 🔵 Unread Indicator + Message -->
+                <div class="flex items-center">
+                    <div th:if="${!note.read}" class="unread-dot"></div>
+                    <p th:classappend="${!note.read} ? 'font-semibold text-blue-800' : 'text-gray-800 font-medium'"
+                       th:text="${note.message}"></p>
+                </div>
+
+                <!-- ❌ Delete Button -->
+                <form th:action="@{/notifications/delete/{id}(id=${note.id})}" method="post">
+                    <button type="submit" class="text-red-500 hover:text-red-700 transition">
+                        <i class="bi bi-x-circle"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 🚫 Empty State -->
+        <div th:if="${notifications == null or notifications.size() == 0}" class="text-center py-16 text-gray-500">
+            <div class="flex flex-col items-center justify-center space-y-3 animate-pulse">
+                <img src="https://cdn-icons-png.flaticon.com/512/4076/4076549.png"
+                     alt="No Notifications" class="w-20 opacity-90 animate-bounce">
+                <p class="text-lg font-semibold text-blue-700">You're all caught up!</p>
+                <p class="text-sm text-gray-500">No new notifications yet 💫</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🪄 Notification Popup Script -->
+<script>
+    const notifBtn = document.getElementById('notif-btn');
+    const notifOverlay = document.getElementById('notif-overlay');
+    const closeNotif = document.getElementById('close-notif');
+
+    notifBtn.addEventListener('click', () => {
+        notifOverlay.classList.remove('hidden');
+        notifOverlay.classList.add('flex');
+    });
+
+    closeNotif.addEventListener('click', () => {
+        notifOverlay.classList.add('hidden');
+    });
+
+    notifOverlay.addEventListener('click', (e) => {
+        if (e.target === notifOverlay) {
+            notifOverlay.classList.add('hidden');
+        }
+    });
+</script>
+
+</body>
+</html>

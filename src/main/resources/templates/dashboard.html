@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Civic Voice – Dashboard</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+
+    <style>
+        body {
+          font-family: 'Poppins', sans-serif;
+          background: linear-gradient(to bottom right, #f0f9ff, #ffffff, #dbeafe);
+          overflow-x: hidden;
+          transition: all 0.3s ease;
+        }
+
+        /* Sidebar styling */
+        .sidebar {
+          position: fixed;
+          top: 64px;
+          left: 0;
+          width: 16rem;
+          height: calc(100vh - 64px);
+          overflow-y: auto;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
+          border-right: 1px solid rgba(0, 0, 0, 0.05);
+          transition: transform 0.3s ease-in-out;
+          z-index: 40;
+        }
+
+        .sidebar.hidden {
+          transform: translateX(-100%);
+        }
+
+        .sidebar a {
+          transition: all 0.2s ease-in-out;
+        }
+
+        .sidebar a:hover {
+          background: #3b82f6;
+          color: white !important;
+          transform: translateX(5px);
+        }
+
+        nav {
+          height: 64px;
+        }
+
+        .main-content {
+          margin-left: 16rem;
+          margin-top: 64px;
+          transition: all 0.3s ease;
+        }
+
+        .sidebar.hidden + .main-content {
+          margin-left: 0;
+        }
+
+        .hamburger {
+          width: 28px;
+          height: 20px;
+          position: relative;
+          cursor: pointer;
+        }
+
+        .bar {
+          position: absolute;
+          height: 3px;
+          width: 100%;
+          background-color: #1e3a8a;
+          border-radius: 3px;
+          transition: all 0.3s ease;
+        }
+
+        .bar:nth-child(1) { top: 0; }
+        .bar:nth-child(2) { top: 8px; }
+        .bar:nth-child(3) { top: 16px; }
+
+        .status-card {
+          transition: transform 0.2s ease;
+        }
+
+        .status-card:hover {
+          transform: scale(1.05);
+        }
+
+        /* 🔔 Notification Animation */
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fadeIn {
+          animation: slideDown 0.3s ease-out;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+
+<!-- Navbar -->
+<nav class="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md shadow-sm px-6 flex items-center justify-between z-50">
+    <div class="flex items-center space-x-4">
+        <div id="hamburger" class="hamburger">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        <h1 class="text-2xl font-extrabold text-blue-700 whitespace-nowrap">🌿 Civic Voice</h1>
+    </div>
+
+    <div class="flex items-center space-x-6 relative">
+        <!-- Notification -->
+        <div id="notif-btn" class="relative cursor-pointer text-gray-600">
+            <i class="bi bi-bell-fill text-2xl hover:text-blue-600 transition transform hover:scale-110"></i>
+            <span id="notif-count" class="absolute -top-1 -right-2 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full"
+                  th:if="${unreadCount != null and unreadCount > 0}" th:text="${unreadCount}">0</span>
+        </div>
+
+        <!-- Profile -->
+        <div class="relative group">
+            <img th:src="${user.profilePicture != null ? user.profilePicture : '/avatars/default.png'}"
+                 class="w-10 h-10 rounded-full object-cover border-2 border-blue-500 cursor-pointer">
+            <div class="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition">
+                <a href="/profile" class="block px-4 py-2 text-gray-700 hover:bg-blue-50">View Profile</a>
+                <hr class="border-gray-100" />
+                <a href="/logout" class="block px-4 py-2 text-red-600 font-semibold hover:bg-red-50">Logout</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Sidebar -->
+<aside id="sidebar" class="sidebar p-6">
+    <nav class="flex flex-col space-y-2 text-gray-700 font-medium">
+        <a href="/dashboard" class="flex items-center px-4 py-2 rounded-md hover:bg-blue-100">
+            <i class="bi bi-house-door-fill mr-3 text-blue-600"></i> Dashboard
+        </a>
+        <a href="/complaints/list" class="flex items-center px-4 py-2 rounded-md hover:bg-blue-100">
+            <i class="bi bi-list-task mr-3 text-blue-600"></i> My Complaints
+        </a>
+        <a href="/complaints/history" class="flex items-center px-4 py-2 rounded-md hover:bg-blue-100">
+            <i class="bi bi-clock-history mr-3 text-blue-600"></i> Complaint History
+        </a>
+        <a href="/feedback" class="flex items-center px-4 py-2 rounded-md hover:bg-blue-100">
+            <i class="bi bi-chat-dots-fill mr-3 text-blue-600"></i> Feedback
+        </a>
+        <a href="/about" class="flex items-center px-4 py-2 rounded-md hover:bg-blue-100">
+            <i class="bi bi-info-circle-fill mr-3 text-blue-600"></i> About
+        </a>
+
+        <!-- ✅ FIXED: Switch to Admin Dashboard (visible only to admins) -->
+        <a th:if="${#authentication.principal.user.role == 'ADMIN'}"
+           href="/admin/dashboard"
+           class="flex items-center px-4 py-2 rounded-md hover:bg-blue-100 mt-4 border-t pt-4">
+            <i class="bi bi-shield-lock-fill mr-3 text-blue-600"></i> Switch to Admin
+        </a>
+    </nav>
+</aside>
+
+<!-- Main Content -->
+<main id="main" class="main-content p-10">
+    <div class="flex justify-between items-center mb-10">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-800">
+                Welcome back, <span class="text-blue-700" th:text="${username}">User</span> 👋
+            </h2>
+            <p class="text-gray-500 mt-2">Empowering your community through action 🌍</p>
+        </div>
+    </div>
+
+    <section class="text-center mt-20">
+        <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-10 rounded-3xl shadow-lg w-[450px] mx-auto hover:scale-105 transition">
+            <i class="bi bi-megaphone text-5xl mb-4"></i>
+            <h3 class="text-2xl font-semibold mb-3">Raise Your Voice</h3>
+            <p class="text-blue-100 mb-6">Let us know your concerns and help make your community better 💪</p>
+            <a href="/complaints/submit" class="bg-white text-blue-700 px-6 py-3 rounded-full font-semibold shadow hover:bg-blue-100 transition">
+                File a Complaint
+            </a>
+        </div>
+    </section>
+
+    <section class="mt-16">
+        <h3 class="text-2xl font-bold text-gray-700 mb-6 text-center">Your Complaint Summary</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            <div class="status-card bg-yellow-100 p-5 rounded-xl text-center shadow hover:scale-105 transition">
+                <i class="bi bi-hourglass-split text-yellow-600 text-3xl mb-2"></i>
+                <h4 class="text-lg font-semibold text-gray-800">Pending</h4>
+                <p class="text-2xl font-bold text-yellow-700" th:text="${pending}">0</p>
+            </div>
+            <div class="status-card bg-purple-100 p-5 rounded-xl text-center shadow hover:scale-105 transition">
+                <i class="bi bi-tools text-purple-600 text-3xl mb-2"></i>
+                <h4 class="text-lg font-semibold text-gray-800">In Progress</h4>
+                <p class="text-2xl font-bold text-purple-700" th:text="${inProgress}">0</p>
+            </div>
+            <div class="status-card bg-green-100 p-5 rounded-xl text-center shadow hover:scale-105 transition">
+                <i class="bi bi-check-circle text-green-600 text-3xl mb-2"></i>
+                <h4 class="text-lg font-semibold text-gray-800">Completed</h4>
+                <p class="text-2xl font-bold text-green-700" th:text="${completed}">0</p>
+            </div>
+            <div class="status-card bg-red-100 p-5 rounded-xl text-center shadow hover:scale-105 transition">
+                <i class="bi bi-x-octagon text-red-600 text-3xl mb-2"></i>
+                <h4 class="text-lg font-semibold text-gray-800">Rejected</h4>
+                <p class="text-2xl font-bold text-red-700" th:text="${rejected}">0</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- 🔔 Notification Popup -->
+<div id="notif-overlay"
+     class="hidden fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl w-96 max-h-[80vh] overflow-y-auto relative p-6 animate-fadeIn scrollbar-hide transition-all">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-blue-700">🔔 Notifications</h2>
+            <form th:action="@{/notifications/markAllRead}" method="post">
+                <button type="submit"
+                        class="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition">
+                    Mark All as Read
+                </button>
+            </form>
+        </div>
+
+        <div th:if="${notifications != null and notifications.size() > 0}">
+            <div th:each="note : ${notifications}"
+                 class="flex justify-between items-center border-b py-3 hover:bg-blue-50 transition">
+                <p class="text-gray-800 font-medium" th:text="${note.message}"></p>
+                <form th:action="@{/notifications/delete/{id}(id=${note.id})}" method="post">
+                    <button type="submit" class="text-red-500 hover:text-red-700">
+                        <i class="bi bi-x-circle"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div th:if="${notifications == null or notifications.size() == 0}" class="text-center py-16 text-gray-500">
+            <div class="flex flex-col items-center justify-center space-y-3 animate-pulse">
+                <img src="https://cdn-icons-png.flaticon.com/512/4076/4076549.png"
+                     alt="No Notifications" class="w-20 opacity-90 animate-bounce">
+                <p class="text-lg font-semibold text-blue-700">You're all caught up!</p>
+                <p class="text-sm text-gray-500">No new notifications yet 💫</p>
+            </div>
+        </div>
+
+        <button id="close-notif"
+                class="absolute top-3 right-3 text-gray-600 hover:text-gray-900 text-xl transition transform hover:rotate-90">
+            <i class="bi bi-x-circle"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Sidebar & Notification Script -->
+<script>
+    const sidebar = document.getElementById('sidebar');
+    const hamburger = document.getElementById('hamburger');
+    const notifBtn = document.getElementById('notif-btn');
+    const notifOverlay = document.getElementById('notif-overlay');
+    const closeNotif = document.getElementById('close-notif');
+
+    hamburger.addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
+    });
+
+    notifBtn.addEventListener('click', () => {
+        notifOverlay.classList.remove('hidden');
+        notifOverlay.classList.add('flex');
+    });
+
+    closeNotif.addEventListener('click', () => {
+        notifOverlay.classList.add('hidden');
+        notifOverlay.classList.remove('flex');
+    });
+
+    notifOverlay.addEventListener('click', (e) => {
+        if (e.target === notifOverlay) {
+            notifOverlay.classList.add('hidden');
+            notifOverlay.classList.remove('flex');
+        }
+    });
+</script>
+</body>
+</html>

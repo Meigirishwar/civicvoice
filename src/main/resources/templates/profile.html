@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Civic Voice – Profile</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(180deg, #f3f4f6, #e5e7eb, #f9fafb);
+            background-attachment: fixed;
+            color: #1f2937;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .avatar-grid img {
+            transition: transform 0.3s ease, border 0.3s ease;
+        }
+
+        .avatar-grid button.active img {
+            border-color: #3b82f6 !important;
+            transform: scale(1.1);
+        }
+
+        .avatar-grid img:hover {
+            transform: scale(1.1);
+            border: 2px solid #3b82f6;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(37, 99, 235, 0.2);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen text-gray-800 flex flex-col items-center justify-center">
+
+<!-- 🔙 Back to Dashboard -->
+<div class="fixed top-5 left-5">
+    <a href="/dashboard"
+       class="flex items-center text-blue-600 hover:text-blue-800 transition">
+        <i class="bi bi-arrow-left-circle text-2xl mr-2"></i>
+        <span class="font-semibold">Back to Dashboard</span>
+    </a>
+</div>
+
+<!-- 💠 Title -->
+<h1 class="text-4xl font-bold text-blue-700 mb-8 mt-8">🌿 Civic Voice</h1>
+
+<!-- Glass Card -->
+<div class="glass-card p-10 rounded-3xl w-full max-w-3xl">
+    <h2 class="text-2xl font-bold text-blue-800 mb-6 text-center">Profile Settings</h2>
+
+    <!-- Profile Form -->
+    <form th:action="@{/profile/update}" method="post" enctype="multipart/form-data" class="space-y-6">
+        <!-- Profile Picture -->
+        <div class="flex flex-col items-center space-y-4">
+            <img id="profilePreview"
+                 th:src="${user.profilePicture != null ? user.profilePicture : '/avatars/default.png'}"
+                 class="w-32 h-32 rounded-full object-cover border-4 border-blue-300 shadow-md"
+                 alt="Profile Picture">
+
+            <label class="text-sm text-gray-700 font-medium">Upload New Photo:</label>
+            <input type="file" name="profilePicture" accept="image/*" id="profilePictureInput"
+                   class="block w-60 text-sm text-gray-700 border border-gray-300 rounded-lg p-2 bg-white cursor-pointer">
+        </div>
+
+        <!-- Name & Email -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <div>
+                <label class="block text-gray-700 text-sm font-semibold mb-2">Full Name</label>
+                <input type="text" name="fullName" th:value="${user.fullName}"
+                       class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" required>
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-semibold mb-2">Email</label>
+                <input type="email" name="email" th:value="${user.email}"
+                       class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" required>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="text-center mt-6">
+            <button type="submit"
+                    class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow-md hover:bg-blue-700 transition">
+                <i class="bi bi-save"></i> Save Changes
+            </button>
+        </div>
+    </form>
+
+    <!-- Avatar Selection -->
+    <div class="mt-10">
+        <h3 class="text-lg font-semibold text-blue-800 mb-3">Choose an Avatar</h3>
+        <form th:action="@{/profile/avatar}" method="post" class="avatar-grid grid grid-cols-5 gap-3">
+            <div th:each="i : ${#numbers.sequence(1, 20)}" class="text-center">
+                <button type="submit" name="avatarName" th:value="'avatar' + ${i} + '.png'">
+                    <img th:src="@{'/avatars/avatar' + ${i} + '.png'}"
+                         class="w-16 h-16 rounded-full border-2 border-transparent" alt="Avatar">
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Change Password -->
+    <div class="mt-12 border-t border-gray-300 pt-6">
+        <h3 class="text-lg font-semibold text-blue-800 mb-4">Change Password</h3>
+        <form id="passwordForm" action="/profile/change-password" method="post" class="space-y-4">
+            <input type="password" name="currentPassword" id="currentPassword" placeholder="Current Password"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" required>
+            <input type="password" name="newPassword" id="newPassword" placeholder="New Password"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" required>
+            <input type="password" name="confirmPassword" id="confirmPassword" placeholder="Confirm New Password"
+                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" required>
+
+            <button type="submit"
+                    class="w-full py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">
+                <i class="bi bi-lock"></i> Update Password
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- ✅ SweetAlert Success / Error Popups -->
+<script th:if="${param.success}">
+    Swal.fire({ icon: 'success', title: 'Profile Updated!', text: 'Your changes have been saved successfully.', confirmButtonColor: '#2563eb' });
+</script>
+
+<script th:if="${param.avatarSet}">
+    Swal.fire({ icon: 'success', title: 'Avatar Updated!', text: 'Your avatar has been changed successfully.', confirmButtonColor: '#2563eb' });
+</script>
+
+<script th:if="${param.passwordChanged}">
+    Swal.fire({ icon: 'success', title: 'Password Changed!', text: 'Your password has been updated securely.', confirmButtonColor: '#2563eb' });
+</script>
+
+<script th:if="${param.error == 'wrongCurrent'}">
+    Swal.fire({ icon: 'error', title: 'Incorrect Password', text: 'Your current password is incorrect.', confirmButtonColor: '#dc2626' });
+</script>
+
+<script th:if="${param.error == 'notMatch'}">
+    Swal.fire({ icon: 'warning', title: 'Passwords Do Not Match', text: 'Please recheck your new password fields.', confirmButtonColor: '#f59e0b' });
+</script>
+
+<!-- ✅ JS Enhancements -->
+<script>
+    // Live profile photo preview
+    const fileInput = document.getElementById('profilePictureInput');
+    const imgPreview = document.getElementById('profilePreview');
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => imgPreview.src = e.target.result;
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    // Avatar selection highlight
+    const avatarButtons = document.querySelectorAll('.avatar-grid button');
+    avatarButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            avatarButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
+
+    // Password validation
+    document.getElementById('passwordForm').addEventListener('submit', function(e) {
+        const newPass = document.getElementById('newPassword').value;
+        const confirmPass = document.getElementById('confirmPassword').value;
+        const strongPass = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+        if (!strongPass.test(newPass)) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'warning',
+                title: 'Weak Password',
+                text: 'Password must be at least 8 characters long and include a number & uppercase letter.',
+                confirmButtonColor: '#f59e0b'
+            });
+            return;
+        }
+
+        if (newPass !== confirmPass) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'Passwords Do Not Match',
+                text: 'Please ensure both password fields are the same.',
+                confirmButtonColor: '#dc2626'
+            });
+        }
+    });
+</script>
+
+</body>
+</html>
