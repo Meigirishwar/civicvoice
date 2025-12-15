@@ -34,7 +34,7 @@ src/main/java/com.civicvoice.civicvoice
 ├── repository
 └── service
 
----
+-----
 
 ## 📸 Screenshots 
 <img width="1873" height="915" alt="Screenshot 2025-11-08 014935" src="https://github.com/user-attachments/assets/061fe4b5-2a8b-4cea-b6ea-4dd421c2cd5d" />
