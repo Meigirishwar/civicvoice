@@ -10,7 +10,6 @@ CivicVoice is a Spring Boot–based web application designed to simplify communi
 - Submit complaints with image uploads
 - Real-time complaint status tracking
 - Admin dashboard for complaint management
-- Email notifications (optional)
 - Error handling and validation
 - Responsive UI with Thymeleaf templates
 
