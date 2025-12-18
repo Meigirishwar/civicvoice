@@ -77,6 +77,7 @@ set_java_home() {
   fi
 }
 
+
 # hash string like Java String::hashCode
 hash_string() {
   str="${1:-}" h=0
