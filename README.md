@@ -44,7 +44,6 @@ src/main/java/com.civicvoice.civicvoice
 <img width="1869" height="979" alt="Screenshot 2025-11-08 021441" src="https://github.com/user-attachments/assets/b63b2103-5538-4042-b0b2-ef53fc7cbf72" />
 <img width="1739" height="892" alt="Screenshot 2025-11-12 110452" src="https://github.com/user-attachments/assets/6806902f-113c-45d5-95e5-14d0638f313b" />
 
-
 ---
 
 ## 📌 How to Run
