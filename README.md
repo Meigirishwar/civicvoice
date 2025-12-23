@@ -3,7 +3,6 @@
 CivicVoice is a Spring Boot–based web application designed to simplify community issue reporting and improve communication between citizens and local authorities. The platform allows users to submit complaints, upload evidence, track complaint status, and receive updates. Administrators can manage, verify, and resolve complaints through a secure, role-based dashboard.
 
 ---
-
 ## 🚀 Features
 - User registration and secure authentication
 - Role-based access (Admin & User)
@@ -12,7 +11,6 @@ CivicVoice is a Spring Boot–based web application designed to simplify communi
 - Admin dashboard for complaint management
 - Error handling and validation
 - Responsive UI with Thymeleaf templates
-
 ---
 
 ## 🛠️ Tech Stack
