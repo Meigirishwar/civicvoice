@@ -84,7 +84,6 @@ if ($env:MAVEN_USER_HOME) {
 if (-not (Test-Path -Path $MAVEN_M2_PATH)) {
     New-Item -Path $MAVEN_M2_PATH -ItemType Directory | Out-Null
 }
-
 $MAVEN_WRAPPER_DISTS = $null
 if ((Get-Item $MAVEN_M2_PATH).Target[0] -eq $null) {
   $MAVEN_WRAPPER_DISTS = "$MAVEN_M2_PATH/wrapper/dists"
@@ -100,11 +99,9 @@ if (Test-Path -Path "$MAVEN_HOME" -PathType Container) {
   Write-Output "MVN_CMD=$MAVEN_HOME/bin/$MVN_CMD"
   exit $?
 }
-
 if (! $distributionUrlNameMain -or ($distributionUrlName -eq $distributionUrlNameMain)) {
   Write-Error "distributionUrl is not valid, must end with *-bin.zip, but found $distributionUrl"
 }
-
 # prepare tmp dir
 $TMP_DOWNLOAD_DIR_HOLDER = New-TemporaryFile
 $TMP_DOWNLOAD_DIR = New-Item -Itemtype Directory -Path "$TMP_DOWNLOAD_DIR_HOLDER.dir"
